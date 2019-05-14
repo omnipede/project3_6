@@ -148,7 +148,6 @@ int st_lookup (char* name) {
 void printSymTab(FILE* listing) {
 
 	int i, j;
-
 	for (i = 0; i < scope_index; i++) {
 		for (j=0; j < SIZE; j++) {
 
