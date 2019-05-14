@@ -61,15 +61,20 @@ void scope_pop (void) {
 
 struct ScopeListRec* scope_new (void) {
 
-	struct ScopeListRec* t
-		= (struct ScopeListRec*) malloc (sizeof(struct ScopeListRec));
+	/* If space allows, */
+	if (scope_index < MAX_SCOPE) {
+		struct ScopeListRec* t
+			= (struct ScopeListRec*) malloc (sizeof(struct ScopeListRec));
 
-	t->level = top;
-	t->parent = scope_top();
+		t->level = top;
+		t->parent = scope_top();
 
-	scope[scope_index] = t;
-	scope_index += 1;
-	return t;
+		scope[scope_index] = t;
+		scope_index += 1;
+		return t;
+	}
+	else
+		return NULL;
 }
 
 /* the hash function */
@@ -136,7 +141,30 @@ int st_lookup (char* name) {
 	return -1;
 }
 
+/* Procedure printSymTab prints a formatted listing
+ * of the symbol table contents
+ * to the listing file.
+ */
+void printSymTab(FILE* listing) {
 
+	int i, j;
 
+	for (i = 0; i < scope_index; i++) {
+		for (j=0; j < SIZE; j++) {
 
-
+			BucketList l = scope[i]->hashTable[j];
+			while(l != NULL) {
+				fprintf(listing, "%s\t", l->name);
+				fprintf(listing, "%d", l->memloc);
+				
+				LineList t = l->lines;
+				while(t) {
+					fprintf(listing, "%d ", t->lineno);
+					t = t->next;
+				}
+				fprintf(listing, "\n");
+				l = l->next;
+			}
+		}
+	}
+}
