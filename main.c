@@ -6,7 +6,7 @@
 #include "globals.h"
 
 #define NO_PARSE FALSE
-#define NO_ANALYZE TRUE
+#define NO_ANALYZE FALSE
 #define NO_CODE TRUE
 
 #include "util.h"
@@ -33,8 +33,8 @@ FILE* code;
 
 int EchoSource = FALSE;
 int TraceScan = FALSE;
-int TraceParse = TRUE;
-int TraceAnalyze = FALSE;
+int TraceParse = FALSE;
+int TraceAnalyze = TRUE;
 int TraceCode = FALSE;
 
 int Error = FALSE;
@@ -69,11 +69,14 @@ int main (int argc, char* argv[]) {
 
 #if !NO_ANALYZE
 	if (! Error) {
+		fprintf(listing, "Analyze part\n");
+		/*
 		if (TraceAnalyze) fprintf(listing, "\nBuilding Synbol Table ...\n");
 		buildSyntab(syntaxTree);
 		if (TraceAnalyze) fprintf(listing, "\nChecking Types ...\n");
 		typeCheck(syntaxTree);
 		if (TraceAnalyze) fprintf(listing, "\nType Checking Finished\n");
+		*/
 	}
 
 #if !NO_CODE

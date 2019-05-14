@@ -1,4 +1,4 @@
-OBJECTS= cm.tab.o lex.yy.o util.o main.o
+OBJECTS= cm.tab.o lex.yy.o util.o symtab.o analyze.o main.o
 CC = gcc
 CFLAGS = -Wall -c
 TARGET = project3_6
@@ -11,6 +11,12 @@ main.o: cm.tab.h main.c
 
 util.o: cm.tab.h util.c
 	$(CC) $(CFLAGS) util.c
+
+symtab.o: cm.tab.h symtab.c
+	$(CC) $(CFLAGS) symtab.c
+
+analyze.o: cm.tab.h analyze.c
+	$(CC) $(CFLAGS) analyze.c
 
 cm.tab.o: cm.tab.c
 	$(CC) $(CFLAGS) cm.tab.c
