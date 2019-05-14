@@ -114,3 +114,29 @@ void st_insert (char* name, int lineno, int loc) {
 		t->next->next = NULL;
 	}
 }
+
+/* Funcion st_lookup returns the memory location
+ * of a variable or 1 if not found.
+ */
+int st_lookup (char* name) {
+
+	int h = hash(name);
+	struct ScopeListRec* sc = scope_top();
+	BucketList l = NULL;
+	while (sc) {
+		l = sc->hashTable[h];
+		while (l && (strcmp(name, l->name) != 0) )
+			l = l->next;
+
+		if (l == NULL)
+			sc = sc->parent;
+		else
+			return l->memloc;
+	}
+	return -1;
+}
+
+
+
+
+
