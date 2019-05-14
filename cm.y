@@ -84,17 +84,20 @@ num: NUM
 var_declaration: type_specifier id SEMI 
 				{
 					$$ = newDeclNode(VarK);
+					$$->attr.name = $2->attr.name;
+					$$->lineno = $2->lineno;
+
 					$$->child[0] = $1;
-					$$->child[1] = $2;
 				}		
 			   | type_specifier id LSQUARE num RSQUARE SEMI
 			    {
 					$$ = newDeclNode(VarK);
-					$$->child[0] = $1;
-					$$->child[1] = $2;
-
+					$$->attr.name = $2->attr.name;
+					$$->lineno = $2->lineno;
 					$1->type = Array;
 					$1->len = savedNum;
+
+					$$->child[0] = $1;
 				}
 			   ;
 
@@ -113,10 +116,11 @@ type_specifier: INT
 fun_declaration: type_specifier id LPAREN params RPAREN compound_stmt
 				{
 					$$ = newDeclNode(FunK);
+					$$->attr.name = $2->attr.name;
+					$$->lineno = $2->lineno;
 					$$->child[0] = $1;
-					$$->child[1] = $2;
-					$$->child[2] = $4;
-					$$->child[3] = $6;
+					$$->child[1] = $4;
+					$$->child[2] = $6;
 				}
 			   ;
 
@@ -148,14 +152,16 @@ param_list: param_list COMMA param
 param: type_specifier id
 		{
 			$$ = newDeclNode(ParamK);
+			$$->attr.name = $2->attr.name;
+			$$->lineno = $2->lineno;
 			$$->child[0] = $1;
-			$$->child[1] = $2;
 		}
      | type_specifier id LSQUARE RSQUARE
 		{
 			$$ = newDeclNode(ParamK);
+			$$->attr.name = $2->attr.name;
+			$$->lineno = $2->lineno;
 			$$->child[0] = $1;
-			$$->child[1] = $2;
 
 			$1->type = Array;
 			$1->len = 0;

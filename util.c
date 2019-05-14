@@ -284,13 +284,13 @@ void printTree (TreeNode* tree){
 		else if (tree->nodekind == DeclK) {
 			switch(tree->kind.decl) {
 				case VarK:
-					fprintf(listing, "Variable Declaration\n");	
+					fprintf(listing, "Variable Declaration: %s\n", tree->attr.name);	
 					break;
 				case FunK:
-					fprintf(listing, "Function Declaration\n");
+					fprintf(listing, "Function Declaration: %s\n", tree->attr.name);
 					break;
 				case ParamK:
-					fprintf(listing, "Parameter\n"); 
+					fprintf(listing, "Parameter: %s\n", tree->attr.name); 
 					break;
 				default:
 					fprintf(listing, "Unknown DeclNode kind\n");
