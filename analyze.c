@@ -103,6 +103,22 @@ static void insertNode (TreeNode* t) {
 	}
 }
 
+static void postInsertNode (TreeNode* t) {
+	switch(t->nodekind) {
+		case StmtK:
+			switch(t->kind.stmt) {
+				case CompoundK:
+					scope_pop();
+					break;
+				default:
+					break;
+			}
+			break;
+		default:
+			break;
+	}
+}
+
 /* Function buildSymtab constructs the
  * symbol table by preorder traversal of the syntax tree
  */
@@ -120,5 +136,3 @@ void buildSymtab (TreeNode *syntaxTree) {
 	}
 	return;
 }
-
-

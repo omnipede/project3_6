@@ -39,7 +39,8 @@ void scope_push (struct ScopeListRec* sc) {
 
 void scope_pop (void) {
 
-	top -=  1;
+	if (top > 0)
+		top -=  1;
 	return;
 }
 
