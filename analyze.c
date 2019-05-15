@@ -30,7 +30,6 @@ static void traverse (TreeNode* t,
  */
 static void nullProc(TreeNode* t) {
 
-	if (t == NULL) return;
 	return;
 }
 
