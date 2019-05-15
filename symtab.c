@@ -3,22 +3,6 @@
 #include <string.h>
 #include "symtab.h"
 
-/* SIZE is the size of the hash table. */
-#define SIZE 211
-
-/* SHIFT is the power of two used as multiplier */
-#define SHIFT 4
-
-/* Wrapping structure of BucketList. */
-typedef struct ScopeListRec {
-	/* hash table */
-	BucketList hashTable[SIZE];
-	/* scope level */
-	int level;
-	/* Parent ptr. */
-	struct ScopeListRec* parent;
-}* ScopeList;
-
 /* Maximum scope level. */
 #define MAX_SCOPE 200
 
@@ -121,7 +105,7 @@ void st_insert (char* name, int lineno, int loc) {
 }
 
 /* Funcion st_lookup returns the memory location
- * of a variable or 1 if not found.
+ * of a variable or -1 if not found.
  */
 int st_lookup (char* name) {
 
@@ -139,6 +123,22 @@ int st_lookup (char* name) {
 			return l->memloc;
 	}
 	return -1;
+}
+
+/* Function st_lookup_local returns the memory location
+ * of a variable in local scope, if not found, returns -1
+ */
+int st_lookup_local (char* name) {
+
+	int h = hash(name);
+	BucketList l = scope_top()->hashTable[h];
+	while( l && (strcmp(name, l->name) != 0) )
+		l = l->next;
+
+	if (l == NULL)
+		return -1;
+	else
+		return l->memloc;
 }
 
 /* Procedure printSymTab prints a formatted listing

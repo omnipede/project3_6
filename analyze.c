@@ -50,8 +50,19 @@ static void symbolError (int lineno, char* msg) {
  */
 static void insertNode (TreeNode* t) {
 
+	static int scope_cont = FALSE;
 	switch(t->nodekind) {
 		case StmtK: 
+			switch(t->kind.stmt) {
+				case CompoundK:
+					if (scope_cont) 
+						scope_cont = FALSE;
+					else
+						scope_push(scope_new());
+					break;
+				default:
+					break;
+			}
 			break;
 		case ExpK:
 			break;
@@ -59,15 +70,31 @@ static void insertNode (TreeNode* t) {
 			switch(t->kind.decl) {
 				case VarK:
 					/* First declared. */
-					if (st_lookup(t->attr.name) == -1)
+					if (st_lookup_local(t->attr.name) == -1)
 						st_insert(t->attr.name, t->lineno, location);
 					/* Duplicate declaration. */
 					else 
 						symbolError(t->lineno, "Duplicate var declaration.");
 					break;
 				case FunK:
+					/* If first declared */
+					if (st_lookup(t->attr.name) == -1) {
+						st_insert(t->attr.name, t->lineno, location);
+						scope_cont = TRUE;
+						scope_push(scope_new());
+					}
+					/* Duplicate declaration. */
+					else {
+						symbolError(t->lineno, "Duplicate function declaration.");	
+					}
 					break;
 				case ParamK:
+					/* If first declared. */
+					if (st_lookup_local(t->attr.name) == -1) 
+						st_insert (t->attr.name, t->lineno, location);
+					/* Duplicate declared. */
+					else 
+						symbolError(t->lineno, "Duplcate paramater declaration.");
 					break;
 			}
 			break;
