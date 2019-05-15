@@ -34,13 +34,22 @@ static void nullProc(TreeNode* t) {
 	return;
 }
 
+/* Function typeError prints
+ * type error of input source code. 
+ */
+static void typeError (int lineno, char* msg) {
+
+	Error = TRUE;
+	fprintf(listing, "Type error at line %d: %s\n", lineno, msg);
+}
+
 /* Function symbolError prints 
  * symbolic error of input source code.
  */
 static void symbolError (int lineno, char* msg) {
 
-	fprintf(listing, "Symbol error at line %d: %s\n", lineno, msg);
 	Error = TRUE;
+	fprintf(listing, "Symbolic error at line %d: %s\n", lineno, msg);
 }
 
 
@@ -56,11 +65,10 @@ static void insertNode (TreeNode* t) {
 		case StmtK: 
 			switch(t->kind.stmt) {
 				case CompoundK:
-					if (scope_cont) 
-						scope_cont = FALSE;
-					else {
+					if (scope_cont == FALSE) 
 						scope_push(scope_new());
-					}
+					else 
+						scope_cont = FALSE;
 					break;
 				default:
 					break;
@@ -128,20 +136,15 @@ static void insertNode (TreeNode* t) {
 	}
 }
 
+/* Function postInsertNode pops current scope
+ * when face end of compound statement.
+ */
 static void postInsertNode (TreeNode* t) {
-	switch(t->nodekind) {
-		case StmtK:
-			switch(t->kind.stmt) {
-				case CompoundK:
-					scope_pop();
-					break;
-				default:
-					break;
-			}
-			break;
-		default:
-			break;
-	}
+	if (t->nodekind == StmtK 
+			&& t->kind.stmt == CompoundK)
+		scope_pop();
+	else
+		return;
 }
 
 /* Function buildSymtab constructs the
