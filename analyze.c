@@ -67,13 +67,20 @@ static void insertNode (TreeNode* t) {
 		case ExpK:
 			switch(t->kind.exp) {
 				case IdK:
-					if ((st_lookup (t->attr.name)) == NULL)
+					/* If not declared yet, */
+					if (st_lookup (t->attr.name) == NULL)
 						symbolError(t->lineno, "Undeclared symbol.");
+					/* If declared, append line number. */
 					else 
 						st_insert_global (t->attr.name, t->lineno);
 					break;
 				case CallK:
-					
+					/* If not declared yet, */
+					if (st_lookup (t->attr.name) == NULL)
+						symbolError(t->lineno, "Undeclared symbol.");
+					/* If declared, append line number. */
+					else
+						st_insert_global (t->attr.name, t->lineno);
 					break;
 				default:
 					break;
@@ -142,9 +149,7 @@ void buildSymtab (TreeNode *syntaxTree) {
 
 	/* Push global scope */
 	scope_push(scope_new());
-
 	traverse(syntaxTree, insertNode, postInsertNode);
-
 	if (TraceAnalyze) {
 
 		fprintf(listing, "\nSymbol table:\n\n");
