@@ -54,6 +54,9 @@ struct ScopeListRec* scope_new (void) {
 
 		t->level = top;
 		t->parent = scope_top();
+		int i;
+		for (i = 0; i < SIZE; i++)
+			t->hashTable[i] = NULL;
 
 		scope[scope_index] = t;
 		scope_index += 1;
@@ -112,10 +115,29 @@ void st_insert (char* name, int lineno, int loc, char VPF, int type, int len) {
 	}
 }
 
-/* Funcion st_lookup returns the memory location
- * of a variable or -1 if not found.
+/* Procedure st_insert_global inserts line number to 
+ * the correspoinding scope that stays global.
  */
-int st_lookup (char* name) {
+void st_insert_global (char* name, int lineno) {
+
+	BucketList l = st_lookup(name);
+	if (l == NULL) {
+		/* Do nothing */;
+	}
+	else {
+		LineList t = l->lines;
+		while(t->next) t = t->next;
+		t->next = (LineList) malloc (sizeof(struct LineListRec));
+		t->next->lineno = lineno;
+		t->next->next = NULL;
+	}
+	return;
+}
+
+/* Funcion st_lookup returns the bucket list record
+ * of a variable or NULL if not found.
+ */
+BucketList st_lookup (char* name) {
 
 	int h = hash(name);
 	struct ScopeListRec* sc = scope_top();
@@ -128,25 +150,22 @@ int st_lookup (char* name) {
 		if (l == NULL)
 			sc = sc->parent;
 		else
-			return l->memloc;
+			return l;
 	}
-	return -1;
+	return NULL;
 }
 
-/* Function st_lookup_local returns the memory location
- * of a variable in local scope, if not found, returns -1
+/* Function st_lookup_local returns the bucekt list record
+ * of a variable in local scope, if not found, returns NULL
  */
-int st_lookup_local (char* name) {
+BucketList st_lookup_local (char* name) {
 
 	int h = hash(name);
 	BucketList l = scope_top()->hashTable[h];
 	while( l && (strcmp(name, l->name) != 0) )
 		l = l->next;
 
-	if (l == NULL)
-		return -1;
-	else
-		return l->memloc;
+	return l;
 }
 
 /* Procedure printSymTab prints a formatted listing

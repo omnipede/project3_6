@@ -65,12 +65,25 @@ static void insertNode (TreeNode* t) {
 			}
 			break;
 		case ExpK:
+			switch(t->kind.exp) {
+				case IdK:
+					if ((st_lookup (t->attr.name)) == NULL)
+						symbolError(t->lineno, "Undeclared symbol.");
+					else 
+						st_insert_global (t->attr.name, t->lineno);
+					break;
+				case CallK:
+					
+					break;
+				default:
+					break;
+			}
 			break;
 		case DeclK:
 			switch(t->kind.decl) {
 				case VarK:
 					/* First declared. */
-					if (st_lookup_local(t->attr.name) == -1)
+					if (st_lookup_local(t->attr.name) == NULL)
 						st_insert(t->attr.name, t->lineno, location, 
 								'V', t->child[0]->type, t->child[0]->len);
 					/* Duplicate declaration. */
@@ -79,7 +92,7 @@ static void insertNode (TreeNode* t) {
 					break;
 				case FunK:
 					/* If first declared */
-					if (st_lookup(t->attr.name) == -1) {
+					if (st_lookup(t->attr.name) == NULL) {
 						st_insert(t->attr.name, t->lineno, location, 
 								'F', t->child[0]->type, t->child[0]->len);
 						scope_cont = TRUE;
@@ -92,7 +105,7 @@ static void insertNode (TreeNode* t) {
 					break;
 				case ParamK:
 					/* If first declared. */
-					if (st_lookup_local(t->attr.name) == -1) 
+					if (st_lookup_local(t->attr.name) == NULL) 
 						st_insert (t->attr.name, t->lineno, location, 
 								'P', t->child[0]->type, t->child[0]->len);
 					/* Duplicate declared. */

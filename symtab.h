@@ -68,15 +68,20 @@ struct ScopeListRec* scope_new (void);
  */
 void st_insert (char* name, int lineno, int loc, char VPF, int type, int len);
 
-/* Function st_lookup returns the memory location
- * of a variable or -1 if not found
+/* Procedure st_insert_global inserts line number to 
+ * the correspoinding scope that stays global.
  */
-int st_lookup (char* name);
+void st_insert_global (char* name, int lineno);
 
-/* Function st_lookup_local returns the memory location
- * of a variable in local scope, if not found returns -1
+/* Function st_lookup returns the bucketlist record
+ * of a variable or NULL if not found
  */
-int st_lookup_local (char* name);
+BucketList st_lookup (char* name);
+
+/* Function st_lookup_local returns the bucketlist record
+ * of a variable in local scope, if not found returns NULL
+ */
+BucketList st_lookup_local (char* name);
 
 /* Procedure printSymTab prints a formatted listing 
  * of the symbol table contents
