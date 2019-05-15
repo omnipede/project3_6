@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "globals.h"
 #include "symtab.h"
 
 /* Maximum scope level. */
@@ -79,7 +80,7 @@ static int hash (char* key) {
  * loc = memory location is inserted only the
  * first time, otherwise ignored
  */
-void st_insert (char* name, int lineno, int loc) {
+void st_insert (char* name, int lineno, int loc, char VPF, int type, int len) {
 
 	int h = hash(name);
 	BucketList l = scope_top()->hashTable[h];
@@ -93,6 +94,12 @@ void st_insert (char* name, int lineno, int loc) {
 		l->lines->lineno = lineno;
 		l->lines->next = NULL;
 		l->memloc = loc;
+
+		/* Aux fields. */
+		l->VPF = VPF;
+		l->type = type;
+		l->len = len;
+
 		l->next = scope_top()->hashTable[h];
 		scope_top()->hashTable[h] = l;
 	}
@@ -149,22 +156,53 @@ int st_lookup_local (char* name) {
 void printSymTab(FILE* listing) {
 
 	int i, j;
-	for (i = 0; i < scope_index; i++) {
+	for (i = 0; i < scope_index - 1; i++) {
+		fprintf(listing, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-16s\n", 
+			"Name", "Scope", "Loc", "V/P/F", "Array?", "ArrSize", "Type", "Line numbers");
+		fprintf(listing, "------------------------------------------------------------------------------------\n");
 		for (j=0; j < SIZE; j++) {
 
 			BucketList l = scope[i]->hashTable[j];
 			while(l != NULL) {
-				fprintf(listing, "%s\t", l->name);
-				fprintf(listing, "%d\t", l->memloc);
+				fprintf(listing, "%-8s", l->name);
+				fprintf(listing, "%-8d", scope[i]->level);
+				fprintf(listing, "%-8d", l->memloc);
+
+				switch(l->VPF) {
+					case 'V': fprintf(listing, "%-8s", "Var"); break;
+					case 'P': fprintf(listing, "%-8s", "Par"); break;
+					case 'F': fprintf(listing, "%-8s", "Func"); break;
+					default: ;
+				}
+
+				if (l->type == Array) {
+					fprintf(listing, "%-8s", "Array");
+					fprintf(listing, "%-8d", l->len);
+				}
+				else {
+					fprintf(listing, "%-8s", "No");
+					fprintf(listing, "%-8s", "-");
+				}
+
+				switch(l->type) {
+					case Void:
+						fprintf(listing, "%-8s", "void"); break;
+					case Integer:
+						fprintf(listing, "%-8s", "int"); break;
+					case Array:
+						fprintf(listing, "%-8s", "array"); break;
+					default: ;
+				}
 				
 				LineList t = l->lines;
 				while(t) {
-					fprintf(listing, "%d ", t->lineno);
+					fprintf(listing, "%-4d ", t->lineno);
 					t = t->next;
 				}
 				fprintf(listing, "\n");
 				l = l->next;
 			}
 		}
+		fprintf(listing, "\n");
 	}
 }

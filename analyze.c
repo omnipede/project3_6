@@ -71,7 +71,8 @@ static void insertNode (TreeNode* t) {
 				case VarK:
 					/* First declared. */
 					if (st_lookup_local(t->attr.name) == -1)
-						st_insert(t->attr.name, t->lineno, location);
+						st_insert(t->attr.name, t->lineno, location, 
+								'V', t->child[0]->type, t->child[0]->len);
 					/* Duplicate declaration. */
 					else 
 						symbolError(t->lineno, "Duplicate var declaration.");
@@ -79,7 +80,8 @@ static void insertNode (TreeNode* t) {
 				case FunK:
 					/* If first declared */
 					if (st_lookup(t->attr.name) == -1) {
-						st_insert(t->attr.name, t->lineno, location);
+						st_insert(t->attr.name, t->lineno, location, 
+								'F', t->child[0]->type, t->child[0]->len);
 						scope_cont = TRUE;
 						scope_push(scope_new());
 					}
@@ -91,7 +93,8 @@ static void insertNode (TreeNode* t) {
 				case ParamK:
 					/* If first declared. */
 					if (st_lookup_local(t->attr.name) == -1) 
-						st_insert (t->attr.name, t->lineno, location);
+						st_insert (t->attr.name, t->lineno, location, 
+								'P', t->child[0]->type, t->child[0]->len);
 					/* Duplicate declared. */
 					else 
 						symbolError(t->lineno, "Duplcate paramater declaration.");
@@ -127,7 +130,7 @@ void buildSymtab (TreeNode *syntaxTree) {
 	/* Push global scope */
 	scope_push(scope_new());
 
-	traverse(syntaxTree, insertNode, nullProc);
+	traverse(syntaxTree, insertNode, postInsertNode);
 
 	if (TraceAnalyze) {
 

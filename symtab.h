@@ -26,6 +26,10 @@ typedef struct BucketListRec {
 	char* name;
 	LineList lines;
 	int memloc;
+
+	char VPF;
+	int type;
+	int len;
 	struct BucketListRec* next;
 }* BucketList;
 
@@ -39,6 +43,10 @@ typedef struct ScopeListRec {
 	struct ScopeListRec* parent;
 }* ScopeList;
 
+/* Procedure scope_top returns
+ * current scope record. 
+ */
+struct ScopeListRec* scope_top (void);
 
 /* Procedure scope_push pushes
  * current scope record to stack
@@ -58,7 +66,7 @@ struct ScopeListRec* scope_new (void);
 /* Procedure xt_insert inserts line numbers and
  * memory locations into the symbol table
  */
-void st_insert (char* name, int lineno, int loc);
+void st_insert (char* name, int lineno, int loc, char VPF, int type, int len);
 
 /* Function st_lookup returns the memory location
  * of a variable or -1 if not found

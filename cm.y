@@ -105,11 +105,13 @@ type_specifier: INT
 				{ 
 					$$ = newTypeNode(IntK); 
 					$$->type = Integer;
+					$$->len = 0;
 				}
 			  | VOID
 			  	{ 
 					$$ = newTypeNode(VoidK);
 					$$->type = Void;
+					$$->len = 0;
 				}
 			  ;
 
@@ -128,8 +130,8 @@ params: param_list
 		{ $$ = $1; }
       | VOID
 	  	{ 
-			$$ = newDeclNode(ParamK);
-
+			//$$ = newDeclNode(ParamK);
+			$$ = NULL;
 		}
 	  ;
 
