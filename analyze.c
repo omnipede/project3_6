@@ -15,7 +15,6 @@ static void traverse (TreeNode* t,
 				void (* postProc) (TreeNode *) ) 
 {
 	if (t != NULL) {
-
 		preProc(t);
 		int i;
 		for (i = 0; i < MAXCHILDREN; i++)
@@ -50,6 +49,8 @@ static void symbolError (int lineno, char* msg) {
  */
 static void insertNode (TreeNode* t) {
 
+	if (!t)
+		return;
 	static int scope_cont = FALSE;
 	switch(t->nodekind) {
 		case StmtK: 
@@ -57,8 +58,9 @@ static void insertNode (TreeNode* t) {
 				case CompoundK:
 					if (scope_cont) 
 						scope_cont = FALSE;
-					else
+					else {
 						scope_push(scope_new());
+					}
 					break;
 				default:
 					break;

@@ -344,6 +344,7 @@ call: id LPAREN args RPAREN
 	 {
 		 $$ = newExpNode(CallK);
 		 $$->attr.name = $1->attr.name;
+		 $$->lineno = $1->lineno;
 		 $$->child[0] = $3;
 	 }
 	;

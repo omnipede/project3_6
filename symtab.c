@@ -86,7 +86,9 @@ static int hash (char* key) {
 void st_insert (char* name, int lineno, int loc, char VPF, int type, int len) {
 
 	int h = hash(name);
-	BucketList l = scope_top()->hashTable[h];
+	BucketList l = NULL;
+	if(scope_top())
+		l = scope_top()->hashTable[h];
 
 	while ( l && (strcmp(name, l->name) != 0))
 		l = l->next;
@@ -175,7 +177,7 @@ BucketList st_lookup_local (char* name) {
 void printSymTab(FILE* listing) {
 
 	int i, j;
-	for (i = 0; i < scope_index - 1; i++) {
+	for (i = 0; i < scope_index ; i++) {
 		fprintf(listing, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-16s\n", 
 			"Name", "Scope", "Loc", "V/P/F", "Array?", "ArrSize", "Type", "Line numbers");
 		fprintf(listing, "------------------------------------------------------------------------------------\n");
