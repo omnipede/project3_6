@@ -24,3 +24,74 @@ static void traverse (TreeNode* t,
 		traverse(t->sibling, preProc, postProc);
 	}
 }
+
+/* nullProc is a do-nothing procedure to
+ * generate preorder-only or postorder-only
+ * traversals from traers
+ */
+static void nullProc(TreeNode* t) {
+
+	if (t == NULL) return;
+	return;
+}
+
+/* Function symbolError prints 
+ * symbolic error of input source code.
+ */
+static void symbolError (int lineno, char* msg) {
+
+	fprintf(listing, "Symbol error at line %d: %s\n", lineno, msg);
+	Error = TRUE;
+}
+
+
+/* Procedure insertNode inserts ID stored in t
+ * into the symbol table. 
+ */
+static void insertNode (TreeNode* t) {
+
+	switch(t->nodekind) {
+		case StmtK: 
+			break;
+		case ExpK:
+			break;
+		case DeclK:
+			switch(t->kind.decl) {
+				case VarK:
+					/* First declared. */
+					if (st_lookup(t->attr.name) == -1)
+						st_insert(t->attr.name, t->lineno, location);
+					/* Duplicate declaration. */
+					else 
+						symbolError(t->lineno, "Duplicate var declaration.");
+					break;
+				case FunK:
+					break;
+				case ParamK:
+					break;
+			}
+			break;
+		case TypeK:
+			break;	
+	}
+}
+
+/* Function buildSymtab constructs the
+ * symbol table by preorder traversal of the syntax tree
+ */
+void buildSymtab (TreeNode *syntaxTree) {
+
+	/* Push global scope */
+	scope_push(scope_new());
+
+	traverse(syntaxTree, insertNode, nullProc);
+
+	if (TraceAnalyze) {
+
+		fprintf(listing, "\nSymbol table:\n\n");
+		printSymTab(listing);
+	}
+	return;
+}
+
+

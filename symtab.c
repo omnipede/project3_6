@@ -154,7 +154,7 @@ void printSymTab(FILE* listing) {
 			BucketList l = scope[i]->hashTable[j];
 			while(l != NULL) {
 				fprintf(listing, "%s\t", l->name);
-				fprintf(listing, "%d", l->memloc);
+				fprintf(listing, "%d\t", l->memloc);
 				
 				LineList t = l->lines;
 				while(t) {

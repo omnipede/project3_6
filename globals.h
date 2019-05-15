@@ -63,6 +63,7 @@ typedef struct treeNode {
 extern int EchoSource;
 extern int TraceScan;
 extern int TraceParse;
+extern int TraceAnalyze;
 extern int TraceCode;
 extern int Error;
 

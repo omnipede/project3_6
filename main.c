@@ -33,7 +33,7 @@ FILE* code;
 
 int EchoSource = FALSE;
 int TraceScan = FALSE;
-int TraceParse = TRUE;
+int TraceParse = FALSE;
 int TraceAnalyze = TRUE;
 int TraceCode = FALSE;
 
@@ -69,10 +69,11 @@ int main (int argc, char* argv[]) {
 
 #if !NO_ANALYZE
 	if (! Error) {
-		fprintf(listing, "Analyze part\n");
-		/*
+		//fprintf(listing, "Analyze part\n");
+		
 		if (TraceAnalyze) fprintf(listing, "\nBuilding Synbol Table ...\n");
-		buildSyntab(syntaxTree);
+		buildSymtab(syntaxTree);
+		/*
 		if (TraceAnalyze) fprintf(listing, "\nChecking Types ...\n");
 		typeCheck(syntaxTree);
 		if (TraceAnalyze) fprintf(listing, "\nType Checking Finished\n");
