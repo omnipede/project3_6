@@ -51,22 +51,29 @@ static void symbolError (int lineno, char* msg) {
 	fprintf(listing, "Symbolic error at line %d: %s\n", lineno, msg);
 }
 
+/* Function printError prints
+ * general semantic error of input source code. 
+ */
+static void printError (int lineno, char* msg) {
+
+	Error = TRUE;
+	fprintf(listing, "Semantic error at line %d: %s\n", lineno, msg);
+}
 
 /* Procedure insertNode inserts ID stored in t
  * into the symbol table. 
  */
 static void insertNode (TreeNode* t) {
 
-	if (!t)
-		return;
 	static int scope_cont = FALSE;
 	switch(t->nodekind) {
 		case StmtK: 
 			switch(t->kind.stmt) {
 				case CompoundK:
 					if (scope_cont == FALSE) 
+						/* Create new scope */
 						scope_push(scope_new());
-					else 
+					else /* Don't create new scope */
 						scope_cont = FALSE;
 					break;
 				default:
@@ -161,3 +168,87 @@ void buildSymtab (TreeNode *syntaxTree) {
 	}
 	return;
 }
+
+/* Procedure preCheckNode performs pre type checking
+ * at a single tree node. 
+ */
+static void preCheckNode (TreeNode* t) {
+
+	return;
+}
+
+/* Procedure checkNode performs type checking
+ * at a single tree node.
+ */
+static void checkNode (TreeNode* t) {
+
+	switch(t->nodekind) {
+		case StmtK:
+			break;
+		case ExpK:
+			switch(t->kind.exp) {
+				case OpK:
+
+					break;
+			}
+			break;
+		case DeclK:
+			switch(t->kind.decl) {
+				case VarK:
+					if (t->child[0]->type == Void)
+						printError(t->lineno, "Can't declare void type variable.");
+					break;
+				case ParamK:
+					if (t->child[0]->type == Void)
+						printError(t->lineno, "Can't declare void type parameter.");
+					break;
+				default: ;
+			}
+			break;
+		case TypeK:
+			break;
+		default:
+			;
+	}
+	return;
+}
+
+/* Procedure typeCheck performs type checking 
+ * by a postorder syntax tree traversal.
+ */
+void typeCheck (TreeNode* syntaxTree) {
+
+	traverse(syntaxTree, nullProc, checkNode);
+	return;
+}
+
+/* determine whether main function has valid type 
+ */
+/*
+void mainCheck (TreeNode* t) {
+
+	if (!t) {
+		printError (t->lineno, "There does not exist main function.");
+		return;
+	}
+	for (; t->sibling; t = t->sibling) 
+		;
+	if (t->nodekind == DeclK 
+			&& t->kind.decl == FunK 
+			&& strcmp(t->attr.name, "main") == 0) {
+		if (t->child[0] && t->child[0]->nodekind == TypeK) {
+			if (t->child[0]->type != Void) {
+				printError(t->lineno, "Return type of main function should be void type.");
+				return;
+			}
+			if (t->child[1] && t->child[1]->type != Void) {
+				printError(t->lineno, "Parameter of main function should be void type.");
+				return;
+			}
+		}
+		else {
+			printError (t->lineno, "There does not exist main function.\n");
+			return;
+		}
+	}
+}*/

@@ -106,12 +106,16 @@ type_specifier: INT
 					$$ = newTypeNode(IntK); 
 					$$->type = Integer;
 					$$->len = 0;
+
+					$$->lineno = lineno;
 				}
 			  | VOID
 			  	{ 
 					$$ = newTypeNode(VoidK);
 					$$->type = Void;
 					$$->len = 0;
+
+					$$->lineno = lineno;
 				}
 			  ;
 
@@ -337,7 +341,10 @@ factor: LPAREN expression RPAREN
 	  | call
 	  	{ $$ = $1;}
 	  | NUM
-	  	{ $$ = newExpNode(ConstK); $$->attr.val = atoi(tokenString); }
+	  	{ $$ = newExpNode(ConstK); 
+		  $$->attr.val = atoi(tokenString); 
+		  $$->type = Integer;
+		}
 	  ;
 
 call: id LPAREN args RPAREN

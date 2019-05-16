@@ -68,16 +68,12 @@ int main (int argc, char* argv[]) {
 	}
 
 #if !NO_ANALYZE
-	if (! Error) {
-		//fprintf(listing, "Analyze part\n");
-		
+	if (! Error) {	
 		if (TraceAnalyze) fprintf(listing, "\nBuilding Synbol Table ...\n");
 		buildSymtab(syntaxTree);
-		/*
 		if (TraceAnalyze) fprintf(listing, "\nChecking Types ...\n");
 		typeCheck(syntaxTree);
 		if (TraceAnalyze) fprintf(listing, "\nType Checking Finished\n");
-		*/
 	}
 
 #if !NO_CODE
