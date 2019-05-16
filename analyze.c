@@ -60,6 +60,40 @@ static void printError (int lineno, char* msg) {
 	fprintf(listing, "Semantic error at line %d: %s\n", lineno, msg);
 }
 
+/* Function calcLoc calculates
+ * memory location of symbol. 
+ */
+static int calcLoc (TreeNode* t) {
+	int ret = 0;
+	switch(t->nodekind) {
+		case DeclK:
+			switch(t->kind.decl) {
+				case VarK:
+					if (scope_top()->level == 0) 
+						ret = (t->child[0]->type == Array) 
+							? (scope_top()->varLoc += 4 * (t->child[0]->len))
+							: (scope_top()->varLoc += 4);
+					else
+						ret = (t->child[0]->type == Array)
+							? (scope_top()->varLoc -= 4 * (t->child[0]->len))
+							: (scope_top()->varLoc -= 4);
+					break;
+				case FunK:
+					ret = scope_top()->funcLoc;
+					scope_top()->funcLoc += 1;
+					break;
+				case ParamK:
+					ret = scope_top()->paramLoc;
+					scope_top()->paramLoc += 4;
+					break;
+			}
+			break;
+		default:
+			;
+	}
+	return ret;
+}
+
 /* Procedure insertNode inserts ID stored in t
  * into the symbol table. 
  */
@@ -105,6 +139,7 @@ static void insertNode (TreeNode* t) {
 		case DeclK:
 			switch(t->kind.decl) {
 				case VarK:
+					location = calcLoc(t);
 					/* First declared. */
 					if (st_lookup_local(t->attr.name) == NULL)
 						st_insert(t->attr.name, t->lineno, location, 
@@ -114,6 +149,7 @@ static void insertNode (TreeNode* t) {
 						symbolError(t->lineno, "Duplicate var declaration.");
 					break;
 				case FunK:
+					location = calcLoc(t);
 					/* If first declared */
 					if (st_lookup(t->attr.name) == NULL) {
 						st_insert(t->attr.name, t->lineno, location, 
@@ -129,7 +165,7 @@ static void insertNode (TreeNode* t) {
 				case ParamK:
 					/* If first declared. */
 					if (st_lookup_local(t->attr.name) == NULL) 
-						st_insert (t->attr.name, t->lineno, location, 
+						st_insert (t->attr.name, t->lineno, 0, 
 								'P', t->child[0]->type, t->child[0]->len);
 					/* Duplicate declared. */
 					else 
@@ -149,8 +185,11 @@ static void postInsertNode (TreeNode* t) {
 	if (t->nodekind == StmtK 
 			&& t->kind.stmt == CompoundK)
 		scope_pop();
-	else
-		return;
+	else if (t->nodekind == DeclK && t->kind.decl == ParamK) {
+		/* directly adjust memory location. */
+		st_lookup(t->attr.name)->memloc = calcLoc(t);
+	}
+	return;
 }
 
 /* Function buildSymtab constructs the
@@ -190,6 +229,8 @@ static void checkNode (TreeNode* t) {
 				case OpK:
 
 					break;
+				default:
+					;
 			}
 			break;
 		case DeclK:

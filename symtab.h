@@ -35,6 +35,11 @@ typedef struct BucketListRec {
 
 /* Wrapping structure of BucketList. */
 typedef struct ScopeListRec {
+
+	/* locations. */
+	int varLoc;
+	int funcLoc;
+	int paramLoc;
 	/* hash table */
 	BucketList hashTable[SIZE];
 	/* scope level */

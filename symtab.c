@@ -58,6 +58,15 @@ struct ScopeListRec* scope_new (void) {
 		for (i = 0; i < SIZE; i++)
 			t->hashTable[i] = NULL;
 
+		if (t->level == 0) 
+			t->varLoc = 0;
+		else if (t->level == 1)
+			t->varLoc = -4;
+		else
+			t->varLoc = t->parent->varLoc;
+		t->funcLoc = 0;
+		t->paramLoc = 4;
+
 		scope[scope_index] = t;
 		scope_index += 1;
 		return t;
