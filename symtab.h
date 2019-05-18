@@ -30,6 +30,7 @@ typedef struct BucketListRec {
 	char VPF;
 	int type;
 	int len;
+	TreeNode* params;
 	struct BucketListRec* next;
 }* BucketList;
 
@@ -47,6 +48,9 @@ typedef struct ScopeListRec {
 	/* Parent ptr. */
 	struct ScopeListRec* parent;
 }* ScopeList;
+
+/* List of scopes. */
+extern ScopeList scope[];
 
 /* Procedure scope_top returns
  * current scope record. 
@@ -71,7 +75,7 @@ struct ScopeListRec* scope_new (void);
 /* Procedure xt_insert inserts line numbers and
  * memory locations into the symbol table
  */
-void st_insert (char* name, int lineno, int loc, char VPF, int type, int len);
+void st_insert (char* name, int lineno, int loc, char VPF, int type, int len, TreeNode*);
 
 /* Procedure st_insert_global inserts line number to 
  * the correspoinding scope that stays global.

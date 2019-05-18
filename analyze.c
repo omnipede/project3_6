@@ -5,6 +5,12 @@
 /* counter for variable memory locations. */
 static int location = 0;
 
+/* Saved function name. */
+static char* function_name = NULL;
+
+/* proto */
+void mainCheck (TreeNode*);
+
 /* Procedure traverse is a generic recursive 
  * syntax tree traversal routine;
  * it applies preProc in preorder and postProc 
@@ -143,7 +149,7 @@ static void insertNode (TreeNode* t) {
 					/* First declared. */
 					if (st_lookup_local(t->attr.name) == NULL)
 						st_insert(t->attr.name, t->lineno, location, 
-								'V', t->child[0]->type, t->child[0]->len);
+								'V', t->child[0]->type, t->child[0]->len, NULL);
 					/* Duplicate declaration. */
 					else 
 						symbolError(t->lineno, "Duplicate var declaration.");
@@ -153,7 +159,7 @@ static void insertNode (TreeNode* t) {
 					/* If first declared */
 					if (st_lookup(t->attr.name) == NULL) {
 						st_insert(t->attr.name, t->lineno, location, 
-								'F', t->child[0]->type, t->child[0]->len);
+								'F', t->child[0]->type, t->child[0]->len, t->child[1]);
 						scope_cont = TRUE;
 						scope_push(scope_new());
 					}
@@ -166,7 +172,7 @@ static void insertNode (TreeNode* t) {
 					/* If first declared. */
 					if (st_lookup_local(t->attr.name) == NULL) 
 						st_insert (t->attr.name, t->lineno, 0, 
-								'P', t->child[0]->type, t->child[0]->len);
+								'P', t->child[0]->type, t->child[0]->len, NULL);
 					/* Duplicate declared. */
 					else 
 						symbolError(t->lineno, "Duplcate paramater declaration.");
@@ -205,6 +211,7 @@ void buildSymtab (TreeNode *syntaxTree) {
 		fprintf(listing, "\nSymbol table:\n\n");
 		printSymTab(listing);
 	}
+	scope_pop();
 	return;
 }
 
@@ -213,7 +220,67 @@ void buildSymtab (TreeNode *syntaxTree) {
  */
 static void preCheckNode (TreeNode* t) {
 
+	static int scope_cont = FALSE;
+	static int i = 1;
+	switch(t->nodekind) {
+		case StmtK:
+			switch(t->kind.stmt){
+				case CompoundK:
+					if (scope_cont == FALSE)
+						scope_push(scope[i++]);
+					else
+						scope_cont = FALSE;
+					break;
+				default: ;
+			}
+			break;
+		case DeclK:
+			switch(t->kind.decl) {
+				case FunK:
+					/* Save function name. */
+					function_name = t->attr.name;
+					if (st_lookup(t->attr.name) == NULL) {
+						scope_cont = TRUE;
+						scope_push(scope[i++]);
+					}
+					break;
+				default: ;
+			}
+			break;
+		default: ;
+	}
 	return;
+}
+
+/* Function paramCheck checks 
+ * whether arguments are valid or not(-1).
+ * Returns -1 if number of params and args are different, 
+ * and returns 0 if type of params and args are different,
+ * and returns 1 if no error.
+ */
+int paramCheck(TreeNode* params, TreeNode* args) {
+	int ret = 1;
+	TreeNode *p, *a;
+	int param_cnt = 0, arg_cnt = 0;
+	BucketList p_entry = NULL;
+
+	for (p = params; p; p = p->sibling)
+		param_cnt++;
+	for (a = args; a; a = a->sibling)
+		arg_cnt++;
+
+	if (param_cnt != arg_cnt)
+		ret = -1;
+
+	for (p = params, a = args; p && a;
+			p = p->sibling, a = a->sibling) {
+		p_entry = st_lookup(p->attr.name);
+		if (p_entry && (p_entry->type != a->type)) {
+			ret = 0;
+			break;
+		}
+	}
+	return ret;
 }
 
 /* Procedure checkNode performs type checking
@@ -221,26 +288,91 @@ static void preCheckNode (TreeNode* t) {
  */
 static void checkNode (TreeNode* t) {
 
+	BucketList entry = NULL;
+	TreeNode* left = NULL, *right = NULL;
 	switch(t->nodekind) {
 		case StmtK:
+			switch(t->kind.stmt) {
+				case CompoundK:
+					scope_pop();
+					break;
+				case ReturnK:
+					entry = st_lookup(function_name);
+					/* Check return type. */
+					if (entry && t->child[0] && (entry->type != t->child[0]->type))
+						printError(t->lineno, "Wrong return type.");
+					/* Check whether void type have return statement. */
+					if (entry->type == Void)
+						printError(t->lineno, "Void function can't have return statement.");
+					break;
+				case WhileK:
+					if (t->child[0] && t->child[0]->type != Integer)
+						printError(t->lineno, "Condition statement should be int type.");
+					break;
+				default: ;
+			}
 			break;
 		case ExpK:
 			switch(t->kind.exp) {
 				case OpK:
-
+					left = t->child[0];
+					right = t->child[1];
+					/* Operand type check. */
+					if (t->attr.op == ASSIGN) {
+						if (left->type == Array)
+							printError(t->lineno, "Can't assign to array itself.");
+					}
+					if (left->type != right->type) 
+						printError(t->lineno, "Type of operands are different.");
+					/* Set type. */
+					t->type = left->type;
 					break;
-				default:
-					;
+				case ConstK:
+					t->type = Integer;
+					break;
+				case IdK:
+					/* Set type. */
+					entry = st_lookup (t->attr.name);
+					if (!entry) break;
+					t->type = entry->type;
+					/* If array index is not integer */
+					if (t->child[0] && t->child[0]->type != Integer) 
+						printError(t->lineno, "Array index should be integer.");
+					/* If using non-array id as array. */
+					if (t->child[0] && t->type != Array)
+						printError(t->lineno, "Not array.");
+					/* Change type to int if have array subscription. */
+					if (t->type == Array && t->child[0] != NULL)
+						t->type = Integer;
+					break;
+				case CallK:
+					/* Set type. */
+					entry = st_lookup (t->attr.name);
+					if (!entry) break;
+					t->type = entry->type;
+					/* If call somthing which is not function. */
+					if (entry->VPF != 'F') 
+						printError(t->lineno, "Not function.");
+					/* Check parameter number & types. */
+					else {
+						switch(paramCheck(entry->params, t->child[0])){
+							case -1: printError(t->lineno, "The number of parameters is invalid."); break;
+							case  0: printError(t->lineno, "Invalid type of argument."); break;
+							case  1: /* No error */; break;
+						}
+					}
+					break;
+				default: ;
 			}
 			break;
 		case DeclK:
 			switch(t->kind.decl) {
 				case VarK:
-					if (t->child[0]->type == Void)
+					if (t->child[0] && t->child[0]->type == Void)
 						printError(t->lineno, "Can't declare void type variable.");
 					break;
 				case ParamK:
-					if (t->child[0]->type == Void)
+					if (t->child[0] && t->child[0]->type == Void)
 						printError(t->lineno, "Can't declare void type parameter.");
 					break;
 				default: ;
@@ -259,13 +391,16 @@ static void checkNode (TreeNode* t) {
  */
 void typeCheck (TreeNode* syntaxTree) {
 
-	traverse(syntaxTree, nullProc, checkNode);
+	mainCheck(syntaxTree);
+
+	scope_push(scope[0]);
+	traverse(syntaxTree, preCheckNode, checkNode);
+	scope_pop();
 	return;
 }
 
 /* determine whether main function has valid type 
  */
-/*
 void mainCheck (TreeNode* t) {
 
 	if (!t) {
@@ -277,19 +412,16 @@ void mainCheck (TreeNode* t) {
 	if (t->nodekind == DeclK 
 			&& t->kind.decl == FunK 
 			&& strcmp(t->attr.name, "main") == 0) {
-		if (t->child[0] && t->child[0]->nodekind == TypeK) {
-			if (t->child[0]->type != Void) {
-				printError(t->lineno, "Return type of main function should be void type.");
-				return;
-			}
-			if (t->child[1] && t->child[1]->type != Void) {
-				printError(t->lineno, "Parameter of main function should be void type.");
-				return;
-			}
+		if (t->child[0] && t->child[0]->type != Void) {
+			printError(t->lineno, "Return type of main function should be void type.");
 		}
-		else {
-			printError (t->lineno, "There does not exist main function.\n");
-			return;
+		if (t->child[1] != NULL) {
+			printError(t->lineno, "Parameter of main function should be void type.");
 		}
 	}
-}*/
+	else {
+		printError (t->lineno, "There does not exist main function.");
+	}
+
+	return;
+}

@@ -256,11 +256,13 @@ iteration_stmt: WHILE LPAREN expression RPAREN statement
 return_stmt: RETURN SEMI 
 			{
 				$$ = newStmtNode(ReturnK);
+				$$->lineno = lineno;
 			}
 		   | RETURN expression SEMI
 		   	{
 				$$ = newStmtNode(ReturnK);
 				$$->child[0] = $2;
+				$$->lineno = lineno;
 			}
 		   ;
 
@@ -268,6 +270,7 @@ expression: var ASSIGN expression
 			{
 				$$ = newExpNode(OpK);
 				$$->attr.op = ASSIGN;
+				$$->lineno = lineno;
 				$$->child[0] = $1;
 				$$->child[1] = $3;
 			}
@@ -298,12 +301,12 @@ simple_expression: additive_expression relop additive_expression
 					}
 				 ;
 
-relop: LE { $$ = newExpNode(OpK); $$->attr.op = LE ;} 
-	 | LT { $$ = newExpNode(OpK); $$->attr.op = LT ;}
-	 | GT { $$ = newExpNode(OpK); $$->attr.op = GT ;}
-	 | GE { $$ = newExpNode(OpK); $$->attr.op = GE ;} 
-	 | EQ { $$ = newExpNode(OpK); $$->attr.op = EQ ;}
-	 | NE { $$ = newExpNode(OpK); $$->attr.op = NE ;}
+relop: LE { $$ = newExpNode(OpK); $$->attr.op = LE ; $$->lineno = lineno; } 
+	 | LT { $$ = newExpNode(OpK); $$->attr.op = LT ; $$->lineno = lineno; }
+	 | GT { $$ = newExpNode(OpK); $$->attr.op = GT ; $$->lineno = lineno; }
+	 | GE { $$ = newExpNode(OpK); $$->attr.op = GE ; $$->lineno = lineno; } 
+	 | EQ { $$ = newExpNode(OpK); $$->attr.op = EQ ; $$->lineno = lineno; }
+	 | NE { $$ = newExpNode(OpK); $$->attr.op = NE ; $$->lineno = lineno; }
 	 ;
 
 additive_expression: additive_expression addop term 

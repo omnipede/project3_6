@@ -9,6 +9,7 @@
 
 /* index of scope list. */
 int scope_index = 0;
+
 /* List of scopes. */
 ScopeList scope[MAX_SCOPE];
 
@@ -16,6 +17,7 @@ ScopeList scope[MAX_SCOPE];
 static int top = 0;
 /* Stack of scopes. */
 ScopeList scope_stack[MAX_SCOPE];
+
 
 /* Function scope_top returns
  * current scope record. 
@@ -32,6 +34,8 @@ struct ScopeListRec* scope_top (void) {
  * current scope record to stack
  */
 void scope_push (struct ScopeListRec* sc) {
+	if (!sc)
+		return;
 	
 	if (top < MAX_SCOPE)
 		scope_stack[top++] = sc;	
@@ -92,7 +96,7 @@ static int hash (char* key) {
  * loc = memory location is inserted only the
  * first time, otherwise ignored
  */
-void st_insert (char* name, int lineno, int loc, char VPF, int type, int len) {
+void st_insert (char* name, int lineno, int loc, char VPF, int type, int len, TreeNode* params) {
 
 	int h = hash(name);
 	BucketList l = NULL;
@@ -113,6 +117,7 @@ void st_insert (char* name, int lineno, int loc, char VPF, int type, int len) {
 		l->VPF = VPF;
 		l->type = type;
 		l->len = len;
+		l->params = params;
 
 		l->next = scope_top()->hashTable[h];
 		scope_top()->hashTable[h] = l;
@@ -149,6 +154,9 @@ void st_insert_global (char* name, int lineno) {
  * of a variable or NULL if not found.
  */
 BucketList st_lookup (char* name) {
+
+	if (!name)
+		return NULL;
 
 	int h = hash(name);
 	struct ScopeListRec* sc = scope_top();
