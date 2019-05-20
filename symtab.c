@@ -102,8 +102,10 @@ void st_insert (char* name, int lineno, int loc, char VPF, int type, int len, Tr
 
 	int h = hash(name);
 	BucketList l = NULL;
-	if(scope_top() != NULL)
-		l = scope_top()->hashTable[h];
+	if(scope_top() == NULL)
+		return;
+	
+	l = scope_top()->hashTable[h];
 
 	while(1) {
 		if (l == NULL) break;
@@ -129,10 +131,12 @@ void st_insert (char* name, int lineno, int loc, char VPF, int type, int len, Tr
 	}
 	else { /* found in table, so just add line number */
 		LineList t = l->lines;
-		while(t->next) t = t->next;
-		t->next = (LineList) malloc (sizeof(struct LineListRec));
-		t->next->lineno = lineno;
-		t->next->next = NULL;
+		if (t != NULL) {
+			while(t->next) t = t->next;
+			t->next = (LineList) malloc (sizeof(struct LineListRec));
+			t->next->lineno = lineno;
+			t->next->next = NULL;
+		}
 	}
 }
 
@@ -147,10 +151,12 @@ void st_insert_global (char* name, int lineno) {
 	}
 	else {
 		LineList t = l->lines;
-		while(t->next) t = t->next;
-		t->next = (LineList) malloc (sizeof(struct LineListRec));
-		t->next->lineno = lineno;
-		t->next->next = NULL;
+		if (t != NULL) {
+			while(t->next) t = t->next;
+			t->next = (LineList) malloc (sizeof(struct LineListRec));
+			t->next->lineno = lineno;
+			t->next->next = NULL;
+		}
 	}
 	return;
 }
@@ -165,8 +171,11 @@ BucketList st_lookup (char* name) {
 	BucketList l = NULL;
 	while (sc) {
 		l = sc->hashTable[h];
-		while (l && (strcmp(name, l->name) != 0) )
+		while(1) {
+			if (l == NULL) break;
+			if (strcmp(name, l->name) == 0) break;
 			l = l->next;
+		}
 
 		if (l == NULL)
 			sc = sc->parent;
@@ -181,11 +190,16 @@ BucketList st_lookup (char* name) {
  */
 BucketList st_lookup_local (char* name) {
 
+	if (scope_top() == NULL)
+		return NULL;
+
 	int h = hash(name);
 	BucketList l = scope_top()->hashTable[h];
-	while( l && (strcmp(name, l->name) != 0) )
+	while(1) {
+		if (l == NULL) break;
+		if (strcmp(name, l->name) == 0) break;
 		l = l->next;
-
+	}
 	return l;
 }
 
@@ -197,9 +211,13 @@ void printSymTab(FILE* listing) {
 
 	int i, j;
 	for (i = 0; i < scope_index ; i++) {
+
+		if (scope[i] == NULL) continue;
+
 		fprintf(listing, "%-8s%-8s%-8s%-8s%-8s%-8s%-8s%-16s\n", 
 			"Name", "Scope", "Loc", "V/P/F", "Array?", "ArrSize", "Type", "Line numbers");
 		fprintf(listing, "------------------------------------------------------------------------------------\n");
+
 		for (j=0; j < SIZE; j++) {
 
 			BucketList l = scope[i]->hashTable[j];
@@ -235,7 +253,7 @@ void printSymTab(FILE* listing) {
 				}
 				
 				LineList t = l->lines;
-				while(t) {
+				while(t != NULL) {
 					fprintf(listing, "%-4d ", t->lineno);
 					t = t->next;
 				}
