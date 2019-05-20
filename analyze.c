@@ -273,7 +273,6 @@ int paramCheck(TreeNode* params, TreeNode* args) {
 	int ret = 1;
 	TreeNode *p, *a;
 	int param_cnt = 0, arg_cnt = 0;
-	BucketList p_entry = NULL;
 
 	for (p = params; p; p = p->sibling)
 		param_cnt++;
@@ -282,17 +281,16 @@ int paramCheck(TreeNode* params, TreeNode* args) {
 
 	if (param_cnt != arg_cnt)
 		ret = -1;
-
-	for (p = params, a = args; p && a;
-			p = p->sibling, a = a->sibling) {
-		p_entry = st_lookup(p->attr.name);
-		if (p_entry) {
-			if (p_entry->type != a->type) {
+	else {
+		for (p = params, a = args; p && a;
+				p = p->sibling, a = a->sibling) {
+			if (p->type != a->type) {
 				ret = 0;
 				break;
 			}
 		}
 	}
+
 	return ret;
 }
 
