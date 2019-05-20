@@ -71,10 +71,14 @@ static void printError (int lineno, char* msg) {
  */
 static int calcLoc (TreeNode* t) {
 	int ret = 0;
+	if (scope_top() == NULL)
+		return 0;
 	switch(t->nodekind) {
 		case DeclK:
 			switch(t->kind.decl) {
 				case VarK:
+					if (t->child[0] == NULL)
+						break;
 					if (scope_top()->level == 0) 
 						ret = (t->child[0]->type == Array) 
 							? (scope_top()->varLoc += 4 * (t->child[0]->len))
@@ -193,7 +197,8 @@ static void postInsertNode (TreeNode* t) {
 		scope_pop();
 	else if (t->nodekind == DeclK && t->kind.decl == ParamK) {
 		/* directly adjust memory location. */
-		st_lookup(t->attr.name)->memloc = calcLoc(t);
+		BucketList l = st_lookup(t->attr.name);
+		if (l) l->memloc = calcLoc(t);
 	}
 	return;
 }
@@ -302,7 +307,7 @@ static void checkNode (TreeNode* t) {
 					if (entry && t->child[0] && (entry->type != t->child[0]->type))
 						printError(t->lineno, "Wrong return type.");
 					/* Check whether void type have return statement. */
-					if (entry->type == Void)
+					if (entry && entry->type == Void)
 						printError(t->lineno, "Void function can't have return statement.");
 					break;
 				case WhileK:
@@ -322,7 +327,7 @@ static void checkNode (TreeNode* t) {
 						if (left->type == Array)
 							printError(t->lineno, "Can't assign to array itself.");
 					}
-					if (left->type != right->type) 
+					if (left && right && (left->type != right->type))
 						printError(t->lineno, "Type of operands are different.");
 					/* Set type. */
 					t->type = left->type;
@@ -392,7 +397,6 @@ static void checkNode (TreeNode* t) {
 void typeCheck (TreeNode* syntaxTree) {
 
 	mainCheck(syntaxTree);
-
 	scope_push(scope[0]);
 	traverse(syntaxTree, preCheckNode, checkNode);
 	scope_pop();

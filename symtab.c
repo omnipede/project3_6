@@ -81,6 +81,8 @@ struct ScopeListRec* scope_new (void) {
 
 /* the hash function */
 static int hash (char* key) {
+	if (!key)
+		return 0;
 
 	int temp = 0;
 	int i = 0;
@@ -100,11 +102,14 @@ void st_insert (char* name, int lineno, int loc, char VPF, int type, int len, Tr
 
 	int h = hash(name);
 	BucketList l = NULL;
-	if(scope_top())
+	if(scope_top() != NULL)
 		l = scope_top()->hashTable[h];
 
-	while ( l && (strcmp(name, l->name) != 0))
+	while(1) {
+		if (l == NULL) break;
+		if (strcmp(name, l->name) == 0) break;
 		l = l->next;
+	}
 	if (l == NULL) { /* variable not yet in table */
 		l = (BucketList) malloc (sizeof(struct BucketListRec));
 		l->name = name;
@@ -154,9 +159,6 @@ void st_insert_global (char* name, int lineno) {
  * of a variable or NULL if not found.
  */
 BucketList st_lookup (char* name) {
-
-	if (!name)
-		return NULL;
 
 	int h = hash(name);
 	struct ScopeListRec* sc = scope_top();
