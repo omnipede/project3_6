@@ -71,7 +71,7 @@ static void printError (int lineno, char* msg) {
  */
 static int calcLoc (TreeNode* t) {
 	int ret = 0;
-	if (scope_top() == NULL)
+	if (t == NULL || scope_top() == NULL)
 		return 0;
 	switch(t->nodekind) {
 		case DeclK:
@@ -108,7 +108,8 @@ static int calcLoc (TreeNode* t) {
  * into the symbol table. 
  */
 static void insertNode (TreeNode* t) {
-
+	if (t == NULL)
+		return;
 	static int scope_cont = FALSE;
 	switch(t->nodekind) {
 		case StmtK: 
@@ -148,6 +149,8 @@ static void insertNode (TreeNode* t) {
 			break;
 		case DeclK:
 			switch(t->kind.decl) {
+				if (t->child[0] == NULL)
+					break;
 				case VarK:
 					location = calcLoc(t);
 					/* First declared. */
@@ -192,6 +195,8 @@ static void insertNode (TreeNode* t) {
  * when face end of compound statement.
  */
 static void postInsertNode (TreeNode* t) {
+	if (t == NULL)
+		return;
 	if (t->nodekind == StmtK 
 			&& t->kind.stmt == CompoundK)
 		scope_pop();
@@ -224,7 +229,8 @@ void buildSymtab (TreeNode *syntaxTree) {
  * at a single tree node. 
  */
 static void preCheckNode (TreeNode* t) {
-
+	if (t == NULL)
+		return;
 	static int scope_cont = FALSE;
 	static int i = 1;
 	switch(t->nodekind) {
@@ -280,9 +286,11 @@ int paramCheck(TreeNode* params, TreeNode* args) {
 	for (p = params, a = args; p && a;
 			p = p->sibling, a = a->sibling) {
 		p_entry = st_lookup(p->attr.name);
-		if (p_entry && (p_entry->type != a->type)) {
-			ret = 0;
-			break;
+		if (p_entry) {
+			if (p_entry->type != a->type) {
+				ret = 0;
+				break;
+			}
 		}
 	}
 	return ret;
@@ -292,7 +300,8 @@ int paramCheck(TreeNode* params, TreeNode* args) {
  * at a single tree node.
  */
 static void checkNode (TreeNode* t) {
-
+	if (t == NULL)
+		return;
 	BucketList entry = NULL;
 	TreeNode* left = NULL, *right = NULL;
 	switch(t->nodekind) {
@@ -303,16 +312,19 @@ static void checkNode (TreeNode* t) {
 					break;
 				case ReturnK:
 					entry = st_lookup(function_name);
+					if (entry == NULL) break;
 					/* Check return type. */
-					if (entry && t->child[0] && (entry->type != t->child[0]->type))
-						printError(t->lineno, "Wrong return type.");
+					if (t->child[0])
+						if (entry->type != t->child[0]->type)
+							printError(t->lineno, "Wrong return type.");
 					/* Check whether void type have return statement. */
-					if (entry && entry->type == Void)
+					if (entry->type == Void)
 						printError(t->lineno, "Void function can't have return statement.");
 					break;
 				case WhileK:
-					if (t->child[0] && t->child[0]->type != Integer)
-						printError(t->lineno, "Condition statement should be int type.");
+					if (t->child[0])
+						if (t->child[0]->type != Integer)
+							printError(t->lineno, "Condition statement should be int type.");
 					break;
 				default: ;
 			}
@@ -322,12 +334,14 @@ static void checkNode (TreeNode* t) {
 				case OpK:
 					left = t->child[0];
 					right = t->child[1];
+					if (left == NULL || right == NULL)
+						break;
 					/* Operand type check. */
 					if (t->attr.op == ASSIGN) {
 						if (left->type == Array)
 							printError(t->lineno, "Can't assign to array itself.");
 					}
-					if (left && right && (left->type != right->type))
+					if (left->type != right->type)
 						printError(t->lineno, "Type of operands are different.");
 					/* Set type. */
 					t->type = left->type;
@@ -338,14 +352,16 @@ static void checkNode (TreeNode* t) {
 				case IdK:
 					/* Set type. */
 					entry = st_lookup (t->attr.name);
-					if (!entry) break;
+					if (entry == NULL) break;
 					t->type = entry->type;
 					/* If array index is not integer */
-					if (t->child[0] && t->child[0]->type != Integer) 
-						printError(t->lineno, "Array index should be integer.");
+					if (t->child[0])
+						if (t->child[0]->type != Integer)
+							printError(t->lineno, "Array index should be integer.");
 					/* If using non-array id as array. */
-					if (t->child[0] && t->type != Array)
-						printError(t->lineno, "Not array.");
+					if (t->child[0])
+						if (t->type != Array)
+							printError(t->lineno, "Not array.");
 					/* Change type to int if have array subscription. */
 					if (t->type == Array && t->child[0] != NULL)
 						t->type = Integer;
@@ -373,12 +389,14 @@ static void checkNode (TreeNode* t) {
 		case DeclK:
 			switch(t->kind.decl) {
 				case VarK:
-					if (t->child[0] && t->child[0]->type == Void)
-						printError(t->lineno, "Can't declare void type variable.");
+					if (t->child[0])
+						if (t->child[0]->type == Void)
+							printError(t->lineno, "Can't declare void type variable.");
 					break;
 				case ParamK:
-					if (t->child[0] && t->child[0]->type == Void)
-						printError(t->lineno, "Can't declare void type parameter.");
+					if (t->child[0])
+						if (t->child[0]->type == Void)
+							printError(t->lineno, "Can't declare void type parameter.");
 					break;
 				default: ;
 			}
@@ -416,9 +434,9 @@ void mainCheck (TreeNode* t) {
 	if (t->nodekind == DeclK 
 			&& t->kind.decl == FunK 
 			&& strcmp(t->attr.name, "main") == 0) {
-		if (t->child[0] && t->child[0]->type != Void) {
-			printError(t->lineno, "Return type of main function should be void type.");
-		}
+		if (t->child[0])
+			if (t->child[0]->type != Void)
+				printError(t->lineno, "Return type of main function should be void type.");
 		if (t->child[1] != NULL) {
 			printError(t->lineno, "Parameter of main function should be void type.");
 		}
