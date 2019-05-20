@@ -427,8 +427,12 @@ void mainCheck (TreeNode* t) {
 		printError (t->lineno, "There does not exist main function.");
 		return;
 	}
-	for (; t->sibling; t = t->sibling) 
+	for (; t->sibling && strcmp(t->attr.name, "main"); t = t->sibling) 
 		;
+	if (t->sibling && strcmp(t->attr.name, "main") == 0) {
+		printError(t->lineno, "main function should be in the last.");
+		return;
+	}
 	if (t->nodekind == DeclK 
 			&& t->kind.decl == FunK 
 			&& strcmp(t->attr.name, "main") == 0) {
