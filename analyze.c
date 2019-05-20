@@ -284,7 +284,9 @@ int paramCheck(TreeNode* params, TreeNode* args) {
 	else {
 		for (p = params, a = args; p && a;
 				p = p->sibling, a = a->sibling) {
-			if (p->type != a->type) {
+			if (p->child[0] == NULL) 
+				continue; 
+			if (p->child[0]->type != a->type) {
 				ret = 0;
 				break;
 			}
