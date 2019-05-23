@@ -7,6 +7,8 @@ static int location = 0;
 
 /* Saved function name. */
 static char* function_name = NULL;
+/* Saved Return type. */
+static int returnType = 0;
 
 /* proto */
 void mainCheck (TreeNode*);
@@ -251,6 +253,9 @@ static void preCheckNode (TreeNode* t) {
 				case FunK:
 					/* Save function name. */
 					function_name = t->attr.name;
+					/* Save return type. */
+					if (t->child[0])
+						returnType = t->child[0]->type;
 					/* Create new scope. */
 					scope_cont = TRUE;
 					scope_push(scope[i++]);
@@ -311,14 +316,12 @@ static void checkNode (TreeNode* t) {
 					scope_pop();
 					break;
 				case ReturnK:
-					entry = st_lookup(function_name);
-					if (entry == NULL) break;
 					/* Check return type. */
 					if (t->child[0])
-						if (entry->type != t->child[0]->type)
+						if (returnType != t->child[0]->type)
 							printError(t->lineno, "Wrong return type.");
 					/* Check whether void type have return statement. */
-					if (entry->type == Void)
+					if (returnType == Void)
 						printError(t->lineno, "Void function can't have return statement.");
 					break;
 				case WhileK:
