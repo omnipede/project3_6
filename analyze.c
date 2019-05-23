@@ -182,7 +182,7 @@ static void insertNode (TreeNode* t) {
 								'P', t->child[0]->type, t->child[0]->len, NULL);
 					/* Duplicate declared. */
 					else 
-						symbolError(t->lineno, "Duplcate paramater declaration.");
+						symbolError(t->lineno, "Duplicate parameter declaration.");
 					break;
 			}
 			break;
