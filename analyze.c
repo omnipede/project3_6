@@ -228,14 +228,16 @@ void buildSymtab (TreeNode *syntaxTree) {
  * at a single tree node. 
  */
 static void preCheckNode (TreeNode* t) {
-	if (t == NULL)
-		return;
+
 	static int scope_cont = FALSE;
 	static int i = 1;
+	if (t == NULL || i >= MAX_SCOPE)
+		return;
 	switch(t->nodekind) {
 		case StmtK:
 			switch(t->kind.stmt){
 				case CompoundK:
+					/* Create new scope. */
 					if (scope_cont == FALSE)
 						scope_push(scope[i++]);
 					else
@@ -249,6 +251,7 @@ static void preCheckNode (TreeNode* t) {
 				case FunK:
 					/* Save function name. */
 					function_name = t->attr.name;
+					/* Create new scope. */
 					scope_cont = TRUE;
 					scope_push(scope[i++]);
 					break;

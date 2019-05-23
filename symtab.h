@@ -7,6 +7,9 @@
 /* SHIFT is the power of two used as multiplier */
 #define SHIFT 4
 
+/* Maximum scope level. */
+#define MAX_SCOPE 200
+
 /* the list of line numbers of the source code
  * in which a variable is referenced
  */

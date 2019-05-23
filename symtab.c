@@ -4,9 +4,6 @@
 #include "globals.h"
 #include "symtab.h"
 
-/* Maximum scope level. */
-#define MAX_SCOPE 200
-
 /* index of scope list. */
 int scope_index = 0;
 
