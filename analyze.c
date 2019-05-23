@@ -164,16 +164,15 @@ static void insertNode (TreeNode* t) {
 				case FunK:
 					location = calcLoc(t);
 					/* If first declared */
-					if (st_lookup(t->attr.name) == NULL) {
+					if (st_lookup(t->attr.name) == NULL) 
 						st_insert(t->attr.name, t->lineno, location, 
 								'F', t->child[0]->type, t->child[0]->len, t->child[1]);
-						scope_cont = TRUE;
-						scope_push(scope_new());
-					}
 					/* Duplicate declaration. */
-					else {
+					else 
 						symbolError(t->lineno, "Duplicate function declaration.");	
-					}
+					/* Create new scope. */
+					scope_cont = TRUE;
+					scope_push(scope_new());
 					break;
 				case ParamK:
 					/* If first declared. */
@@ -250,10 +249,8 @@ static void preCheckNode (TreeNode* t) {
 				case FunK:
 					/* Save function name. */
 					function_name = t->attr.name;
-					if (st_lookup(t->attr.name) == NULL) {
-						scope_cont = TRUE;
-						scope_push(scope[i++]);
-					}
+					scope_cont = TRUE;
+					scope_push(scope[i++]);
 					break;
 				default: ;
 			}
