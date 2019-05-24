@@ -323,6 +323,11 @@ static void checkNode (TreeNode* t) {
 					/* Check whether void type have return statement. */
 					if (returnType == Void)
 						printError(t->lineno, "Void function can't have return statement.");
+					if (returnType == Integer) {
+						if (t->child[0] == NULL) {
+							printError(t->lineno, "Int function should have return value.");
+						}
+					}
 					break;
 				case WhileK:
 					if (t->child[0])
