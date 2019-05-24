@@ -316,23 +316,21 @@ static void checkNode (TreeNode* t) {
 					scope_pop();
 					break;
 				case ReturnK:
-					/* Check return type. */
-					if (t->child[0])
-						if (returnType != t->child[0]->type)
-							printError(t->lineno, "Wrong return type.");
 					/* Check whether void type have return statement. */
 					if (returnType == Void)
 						printError(t->lineno, "Void function can't have return statement.");
-					if (returnType == Integer) {
-						if (t->child[0] == NULL) {
+					/* Check return type. */
+					else if (returnType == Integer) {
+						if (t->child[0] == NULL || t->child[0]->type != returnType) {
 							printError(t->lineno, "Int function should have return value.");
 						}
 					}
 					break;
+				case IfK:
 				case WhileK:
 					if (t->child[0])
 						if (t->child[0]->type != Integer)
-							printError(t->lineno, "Condition statement should be int type.");
+							printError(t->child[0]->lineno, "Condition statement should be int type.");
 					break;
 				default: ;
 			}
