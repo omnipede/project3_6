@@ -399,6 +399,7 @@ static void checkNode (TreeNode* t) {
 					if (t->child[0])
 						if (t->child[0]->type == Integer && existReturn == 0)
 							printError(t->lineno, "Integer type function should have return statement.");
+					break;
 				default: ;
 			}
 			break;
