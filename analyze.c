@@ -9,6 +9,8 @@ static int location = 0;
 static char* function_name = NULL;
 /* Saved Return type. */
 static int returnType = 0;
+/* Flag to check existence of return statement. */
+static int existReturn = 0;
 
 /* proto */
 void mainCheck (TreeNode*);
@@ -30,24 +32,6 @@ static void traverse (TreeNode* t,
 		postProc(t);
 		traverse(t->sibling, preProc, postProc);
 	}
-}
-
-/* nullProc is a do-nothing procedure to
- * generate preorder-only or postorder-only
- * traversals from traers
- */
-static void nullProc(TreeNode* t) {
-
-	return;
-}
-
-/* Function typeError prints
- * type error of input source code. 
- */
-static void typeError (int lineno, char* msg) {
-
-	Error = TRUE;
-	fprintf(listing, "Type error at line %d: %s\n", lineno, msg);
 }
 
 /* Function symbolError prints 
@@ -245,6 +229,10 @@ static void preCheckNode (TreeNode* t) {
 					else
 						scope_cont = FALSE;
 					break;
+				case ReturnK:
+					/* Set return statement flag. */
+					existReturn = 1;
+					break;
 				default: ;
 			}
 			break;
@@ -259,6 +247,9 @@ static void preCheckNode (TreeNode* t) {
 					/* Create new scope. */
 					scope_cont = TRUE;
 					scope_push(scope[i++]);
+
+					/* Initialize return statement flag. */
+					existReturn = 0;
 					break;
 				default: ;
 			}
@@ -404,6 +395,10 @@ static void checkNode (TreeNode* t) {
 						if (t->child[0]->type == Void)
 							printError(t->lineno, "Can't declare void type parameter.");
 					break;
+				case FunK:
+					if (t->child[0])
+						if (t->child[0]->type == Integer && existReturn == 0)
+							printError(t->lineno, "Integer type function should have return statement.");
 				default: ;
 			}
 			break;
