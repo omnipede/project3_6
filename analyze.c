@@ -29,8 +29,15 @@ static void traverse (TreeNode* t,
 		int i;
 		for (i = 0; i < MAXCHILDREN; i++)
 			traverse(t->child[i], preProc, postProc);
-		postProc(t);
-		traverse(t->sibling, preProc, postProc);
+
+		if (t->nodekind == DeclK && t->kind.decl == ParamK) {
+			traverse(t->sibling, preProc, postProc);
+			postProc(t);
+		}
+		else {
+			postProc(t);
+			traverse(t->sibling, preProc, postProc);
+		}
 	}
 }
 
