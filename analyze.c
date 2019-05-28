@@ -350,6 +350,10 @@ static void checkNode (TreeNode* t) {
 					/* Set type. */
 					entry = st_lookup (t->attr.name);
 					if (entry == NULL) break;
+					/* Use function as variable. */
+					if (entry->VPF == 'F') {
+						printError(t->lineno, "Can't use function as variable.");
+					}
 					t->type = entry->type;
 					/* If array index is not integer */
 					if (t->child[0])
